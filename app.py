@@ -57,20 +57,175 @@ def regime_ai_allocation(regime):
 # =====================================================
 # LEARNING INSIGHTS
 # =====================================================
-learning_insights = {
-"Rate Hike":"Central banks raise rates → equity valuations compress.",
-"Growth Rally":"Risk appetite increases → equities & crypto rally.",
-"Crisis":"Risk-off environment. Gold & bonds protect capital.",
-"Disinflation":"Falling inflation supports bonds and balanced portfolios.",
-"Recession":"Growth slows → defensive allocation helps.",
-"Liquidity":"Liquidity injection boosts risk assets broadly.",
-"Inflation":"Inflation hurts bonds. Gold hedges inflation.",
-"Credit":"Financial stress → defensive rotation.",
-"Mixed":"Conflicting signals → diversification reduces regret.",
-"Tech Correction":"Growth stocks correct sharply.",
-"Commodity Boom":"Real assets outperform.",
-"Soft Landing":"Moderate growth supports balanced allocation.",
-"Dollar Surge":"Strong USD pressures emerging markets."
+llearning_insights = {
+
+"Rate Hike": """
+### 🔍 What Happened?
+Central banks raised policy rates.  
+Higher discount rates reduce equity valuations.
+
+### 📊 Asset Behaviour
+• Growth equities fall  
+• Bonds stabilise after shock  
+• Gold hedges uncertainty  
+
+### 🎓 Reflection
+Did you reduce risk?  
+Did you stay overweight equities?
+""",
+
+"Growth Rally": """
+### 🔍 What Happened?
+Strong earnings + tech optimism drove markets higher.
+
+### 📊 Asset Behaviour
+• Equities & crypto rally  
+• Bonds lag  
+• Cash becomes drag  
+
+### 🎓 Reflection
+Did you capture upside or stay defensive?
+""",
+
+"Crisis": """
+### 🔍 What Happened?
+Geopolitical or financial shock triggered risk-off.
+
+### 📊 Asset Behaviour
+• Bonds + gold outperform  
+• Equities fall  
+• Diversification matters most  
+
+### 🎓 Reflection
+Did your portfolio hedge downside?
+""",
+
+"Disinflation": """
+### 🔍 What Happened?
+Inflation cooled, reducing macro uncertainty.
+
+### 📊 Asset Behaviour
+• Bonds rally  
+• Equities recover  
+• Balanced portfolios win  
+
+### 🎓 Reflection
+Did you increase risk at the right time?
+""",
+
+"Recession": """
+### 🔍 What Happened?
+Growth slowdown → defensive rotation.
+
+### 📊 Asset Behaviour
+• Bonds protect  
+• Gold stable  
+• Risk assets fall  
+
+### 🎓 Reflection
+Was your portfolio concentrated?
+""",
+
+"Liquidity": """
+### 🔍 What Happened?
+Central bank liquidity boosted markets.
+
+### 📊 Asset Behaviour
+• Equities surge  
+• Crypto rallies  
+• Cash underperforms  
+
+### 🎓 Reflection
+Did you position for expansion?
+""",
+
+"Inflation": """
+### 🔍 What Happened?
+Inflation shock hit duration assets.
+
+### 📊 Asset Behaviour
+• Bonds fall  
+• Gold hedges  
+• Equities pressured  
+
+### 🎓 Reflection
+Did you hedge inflation?
+""",
+
+"Credit": """
+### 🔍 What Happened?
+Credit tightening increased stress.
+
+### 📊 Asset Behaviour
+• Defensive assets outperform  
+• Risk appetite falls  
+
+### 🎓 Reflection
+Did you rotate defensively?
+""",
+
+"Mixed": """
+### 🔍 What Happened?
+Conflicting signals in markets.
+
+### 📊 Asset Behaviour
+• Balanced allocation helps  
+• Overconfidence hurts  
+
+### 🎓 Reflection
+Did you stay disciplined?
+""",
+
+"Tech Correction": """
+### 🔍 What Happened?
+High-growth tech sold off sharply.
+
+### 📊 Asset Behaviour
+• US equities fall  
+• Crypto drops  
+• Bonds help  
+
+### 🎓 Reflection
+Were you overexposed to growth?
+""",
+
+"Commodity Boom": """
+### 🔍 What Happened?
+Commodity prices surged globally.
+
+### 📊 Asset Behaviour
+• Gold rises  
+• EM equities benefit  
+• Bonds weak  
+
+### 🎓 Reflection
+Did you hold real assets?
+""",
+
+"Soft Landing": """
+### 🔍 What Happened?
+Growth slowed but avoided recession.
+
+### 📊 Asset Behaviour
+• Balanced portfolios win  
+• Low volatility environment  
+
+### 🎓 Reflection
+Did you stay diversified?
+""",
+
+"Dollar Surge": """
+### 🔍 What Happened?
+Strong USD tightened global liquidity.
+
+### 📊 Asset Behaviour
+• EM equities struggle  
+• Gold weak  
+• US assets hold  
+
+### 🎓 Reflection
+Did you diversify globally?
+"""
 }
 
 # =====================================================
@@ -248,6 +403,15 @@ if st.session_state.submitted:
 
     st.markdown("### Market Insight")
     st.info(learning_insights.get(regime,""))
+    st.markdown("### 🤖 Regime AI Allocation")
+    ai_alloc = regime_ai_allocation(regime)
+    
+    ai_df = pd.DataFrame({
+        "Asset": ai_alloc.keys(),
+        "AI Weight %":[v*100 for v in ai_alloc.values()]
+    })
+
+st.dataframe(ai_df, use_container_width=True)
 
     if st.button("Next Round"):
         st.session_state.round += 1
