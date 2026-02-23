@@ -270,3 +270,17 @@ if st.session_state.submitted:
         st.session_state.round += 1
         st.session_state.submitted = False
         st.rerun()
+st.markdown("""
+---
+<div style='text-align:center; font-size:13px; color:gray'>
+
+**MBA Portfolio War-Room Simulation**  
+Designed & Developed by **Prof. Shalini Velappan**  
+Indian Institute of Management Tiruchirappalli  
+
+© 2026 Prof. Shalini Velappan. All rights reserved.  
+This simulation is proprietary academic teaching material.  
+Not for redistribution without permission.
+
+</div>
+""", unsafe_allow_html=True)
