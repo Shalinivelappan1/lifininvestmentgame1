@@ -6,7 +6,7 @@ import random
 st.set_page_config(page_title="Portfolio War-Room Simulation", layout="wide")
 
 # =====================================================
-# SESSION INITIALIZATION
+# SESSION STATE INITIALIZATION
 # =====================================================
 defaults = {
     "initialized": False,
@@ -17,25 +17,21 @@ defaults = {
     "history": [],
     "bench_history": [],
     "smart_history": [],
-    "alloc_history": [],
-    "regime_labels": [],
-    "scenario_sequence": [],
-    "submitted": False
+    "submitted": False,
+    "scenario_sequence": []
 }
 
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-
 # =====================================================
-# RESET
+# RESET FUNCTION
 # =====================================================
 def reset_all():
     for k in list(st.session_state.keys()):
         del st.session_state[k]
     st.rerun()
-
 
 # =====================================================
 # REGIME AI MODEL
@@ -43,68 +39,45 @@ def reset_all():
 def regime_ai_allocation(regime):
 
     if regime in ["Crisis", "Recession", "Credit"]:
-        return {
-            "Indian Equity": 0.10,
-            "US Equity": 0.10,
-            "Bonds": 0.35,
-            "Gold": 0.30,
-            "Crypto": 0.05,
-            "Cash": 0.10
-        }
+        return {"Indian Equity":0.10,"US Equity":0.10,"Bonds":0.35,
+                "Gold":0.30,"Crypto":0.05,"Cash":0.10}
 
     elif regime in ["Rate Hike", "Inflation"]:
-        return {
-            "Indian Equity": 0.15,
-            "US Equity": 0.15,
-            "Bonds": 0.25,
-            "Gold": 0.30,
-            "Crypto": 0.05,
-            "Cash": 0.10
-        }
+        return {"Indian Equity":0.15,"US Equity":0.15,"Bonds":0.25,
+                "Gold":0.30,"Crypto":0.05,"Cash":0.10}
 
-    elif regime in ["Growth Rally", "Liquidity"]:
-        return {
-            "Indian Equity": 0.30,
-            "US Equity": 0.30,
-            "Bonds": 0.10,
-            "Gold": 0.05,
-            "Crypto": 0.20,
-            "Cash": 0.05
-        }
+    elif regime in ["Growth Rally", "Liquidity", "Soft Landing"]:
+        return {"Indian Equity":0.30,"US Equity":0.30,"Bonds":0.10,
+                "Gold":0.05,"Crypto":0.20,"Cash":0.05}
 
     else:
-        return {
-            "Indian Equity": 0.20,
-            "US Equity": 0.20,
-            "Bonds": 0.20,
-            "Gold": 0.20,
-            "Crypto": 0.10,
-            "Cash": 0.10
-        }
-
+        return {"Indian Equity":0.20,"US Equity":0.20,"Bonds":0.20,
+                "Gold":0.20,"Crypto":0.10,"Cash":0.10}
 
 # =====================================================
 # LEARNING INSIGHTS
 # =====================================================
 learning_insights = {
-"Rate Hike": "Central banks raised rates → equity valuations compress. Defensive assets perform better.",
-"Growth Rally": "Risk appetite increases → equities & crypto rally strongly.",
-"Crisis": "Risk-off environment. Gold & bonds protect capital.",
-"Disinflation": "Falling inflation supports bonds and balanced portfolios.",
-"Recession": "Growth slows → defensive allocation helps.",
-"Liquidity": "Liquidity injection boosts risk assets broadly.",
-"Inflation": "Inflation hurts duration assets. Gold hedges inflation.",
-"Credit": "Financial stress → defensive rotation.",
-"Mixed": "Conflicting signals → diversification reduces regret."
+"Rate Hike":"Central banks raise rates → equity valuations compress.",
+"Growth Rally":"Risk appetite increases → equities & crypto rally.",
+"Crisis":"Risk-off environment. Gold & bonds protect capital.",
+"Disinflation":"Falling inflation supports bonds and balanced portfolios.",
+"Recession":"Growth slows → defensive allocation helps.",
+"Liquidity":"Liquidity injection boosts risk assets broadly.",
+"Inflation":"Inflation hurts bonds. Gold hedges inflation.",
+"Credit":"Financial stress → defensive rotation.",
+"Mixed":"Conflicting signals → diversification reduces regret.",
+"Tech Correction":"Growth stocks correct sharply.",
+"Commodity Boom":"Real assets outperform.",
+"Soft Landing":"Moderate growth supports balanced allocation.",
+"Dollar Surge":"Strong USD pressures emerging markets."
 }
-
 
 # =====================================================
 # TITLE
 # =====================================================
 st.title("Portfolio War-Room Simulation")
 st.caption("Designed by Prof. Shalini Velappan | IIM Tiruchirappalli")
-
 
 # =====================================================
 # START SCREEN
@@ -120,7 +93,7 @@ if not st.session_state.initialized:
         st.session_state.smart_value = capital
         st.session_state.initialized = True
 
-        # Generate full 10-round scenario path ONCE
+        # ----- FIXED FIRST 5 ROUNDS -----
         fixed_rounds = [
             ("Rate Hike","RBI hikes rates",
              {"Indian Equity":-0.07,"US Equity":-0.03,"Bonds":0.02,"Gold":0.04,"Crypto":-0.12,"Cash":0.01}),
@@ -134,31 +107,40 @@ if not st.session_state.initialized:
              {"Indian Equity":-0.12,"US Equity":-0.15,"Bonds":0.06,"Gold":0.07,"Crypto":-0.20,"Cash":0.01})
         ]
 
+        # ----- EXPANDED SCENARIO POOL -----
         scenario_pool = [
-            ("Liquidity","Liquidity injection",
+            ("Liquidity","Global liquidity injection",
              {"Indian Equity":0.11,"US Equity":0.13,"Bonds":0.03,"Gold":-0.02,"Crypto":0.20,"Cash":0.01}),
-            ("Inflation","Oil spike",
+            ("Inflation","Oil price shock",
              {"Indian Equity":-0.06,"US Equity":-0.05,"Bonds":-0.03,"Gold":0.07,"Crypto":-0.04,"Cash":0.01}),
-            ("Credit","Bank stress",
+            ("Credit","Banking sector stress",
              {"Indian Equity":-0.09,"US Equity":-0.08,"Bonds":0.05,"Gold":0.07,"Crypto":-0.10,"Cash":0.01}),
-            ("Mixed","Rate hike + earnings",
-             {"Indian Equity":0.02,"US Equity":0.05,"Bonds":-0.02,"Gold":0.01,"Crypto":0.06,"Cash":0.01})
+            ("Mixed","Rate hike but strong earnings",
+             {"Indian Equity":0.02,"US Equity":0.05,"Bonds":-0.02,"Gold":0.01,"Crypto":0.06,"Cash":0.01}),
+            ("Tech Correction","Tech sector selloff",
+             {"Indian Equity":-0.05,"US Equity":-0.12,"Bonds":0.04,"Gold":0.05,"Crypto":-0.18,"Cash":0.01}),
+            ("Commodity Boom","Commodity supercycle",
+             {"Indian Equity":0.09,"US Equity":0.04,"Bonds":-0.02,"Gold":0.08,"Crypto":0.02,"Cash":0.01}),
+            ("Soft Landing","Growth slows but avoids recession",
+             {"Indian Equity":0.05,"US Equity":0.04,"Bonds":0.03,"Gold":-0.01,"Crypto":0.04,"Cash":0.01}),
+            ("Dollar Surge","Strong USD pressures markets",
+             {"Indian Equity":-0.04,"US Equity":0.02,"Bonds":0.01,"Gold":-0.03,"Crypto":-0.06,"Cash":0.01})
         ]
 
         random_rounds = random.sample(scenario_pool, k=5)
+
         st.session_state.scenario_sequence = fixed_rounds + random_rounds
 
         st.rerun()
 
     st.stop()
 
-
 # =====================================================
 # HEADER
 # =====================================================
 c1, c2 = st.columns(2)
 c1.metric("Portfolio Value", f"₹{int(st.session_state.portfolio_value):,}")
-c2.metric("Round", min(st.session_state.round,10))
+c2.metric("Round", min(st.session_state.round, 10))
 
 if st.button("Reset Simulation"):
     reset_all()
@@ -206,9 +188,8 @@ if rd > 10:
 
     st.stop()
 
-
 # =====================================================
-# ROUND
+# ROUND EXECUTION
 # =====================================================
 regime, news, returns = st.session_state.scenario_sequence[rd-1]
 
@@ -218,12 +199,11 @@ st.info(news)
 alloc = {}
 cols = st.columns(3)
 
-for i, a in enumerate(returns.keys()):
-    alloc[a] = cols[i%3].slider(a, 0, 100, 0, key=f"{a}{rd}")
+for i, asset in enumerate(returns.keys()):
+    alloc[asset] = cols[i % 3].slider(asset, 0, 100, 0, key=f"{asset}{rd}")
 
 total = sum(alloc.values())
 st.write("Total Allocation:", total)
-
 
 # =====================================================
 # SUBMIT
@@ -253,7 +233,6 @@ if total == 100 and not st.session_state.submitted:
 
         st.session_state.submitted = True
         st.rerun()
-
 
 # =====================================================
 # REVEAL
