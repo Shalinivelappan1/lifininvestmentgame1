@@ -6,27 +6,32 @@ import random
 st.set_page_config(page_title="MBA Portfolio War-Room", layout="wide")
 
 # =====================================================
+# SAFE SESSION INITIALIZATION (prevents cloud crashes)
+# =====================================================
+defaults = {
+    "initialized": False,
+    "round": 1,
+    "portfolio_value": 0,
+    "model_value": 0,
+    "history": [],
+    "model_history": [],
+    "alloc_history": [],
+    "predictions": [],
+    "scenario_sequence": [],
+    "regime_labels": [],
+    "submitted": False
+}
+for k,v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+# =====================================================
 # RESET
 # =====================================================
 def reset_state():
     for k in list(st.session_state.keys()):
         del st.session_state[k]
-
-# =====================================================
-# INITIAL STATE
-# =====================================================
-if "initialized" not in st.session_state:
-    st.session_state.initialized = False
-    st.session_state.round = 1
-    st.session_state.portfolio_value = 0
-    st.session_state.model_value = 0
-    st.session_state.history = []
-    st.session_state.model_history = []
-    st.session_state.alloc_history = []
-    st.session_state.predictions = []
-    st.session_state.submitted = False
-    st.session_state.scenario_sequence = []
-    st.session_state.regime_labels = []
+    st.rerun()
 
 # =====================================================
 # TITLE
@@ -42,24 +47,23 @@ if not st.session_state.initialized:
 
     if st.button("Start Simulation"):
         st.session_state.portfolio_value = capital
-        st.session_state.model_value = capital   # MODEL SAME START
+        st.session_state.model_value = capital
         st.session_state.initialized = True
         st.rerun()
 
     st.stop()
 
 # =====================================================
-# HEADER METRICS
+# HEADER
 # =====================================================
 display_round = min(st.session_state.round, 10)
 
-c1, c2 = st.columns(2)
+c1,c2 = st.columns(2)
 c1.metric("Portfolio Value", f"₹{int(st.session_state.portfolio_value):,}")
 c2.metric("Round", display_round)
 
 if st.button("Reset Simulation"):
     reset_state()
-    st.rerun()
 
 rd = st.session_state.round
 
@@ -77,29 +81,28 @@ if rd > 10:
     returns = hist["Value"].pct_change().dropna()
     model_returns = model_hist["Value"].pct_change().dropna()
 
-    # ---------- STUDENT METRICS ----------
+    # Student metrics
     sharpe = returns.mean()/(returns.std()+1e-9)*np.sqrt(10)
     vol = returns.std()*100
     cum = hist["Value"]
     peak = cum.cummax()
     drawdown = ((cum-peak)/peak).min()*100
-    div_score = 100-alloc_df.std(axis=1).mean()
+    div = 100 - alloc_df.std(axis=1).mean()
 
     st.subheader("Your Strategy")
     st.metric("Final Portfolio", f"₹{int(st.session_state.portfolio_value):,}")
     st.metric("Sharpe", round(sharpe,3))
     st.metric("Volatility %", round(vol,2))
     st.metric("Max Drawdown %", round(drawdown,2))
-    st.metric("Diversification", round(div_score,2))
+    st.metric("Diversification", round(div,2))
 
-    # ---------- MODEL METRICS ----------
+    # Model metrics
     model_sharpe = model_returns.mean()/(model_returns.std()+1e-9)*np.sqrt(10)
 
     st.subheader("Model Strategy")
-    st.metric("Model Final Portfolio", f"₹{int(st.session_state.model_value):,}")
+    st.metric("Model Final", f"₹{int(st.session_state.model_value):,}")
     st.metric("Model Sharpe", round(model_sharpe,3))
 
-    # ---------- COMPARISON ----------
     diff = st.session_state.portfolio_value - st.session_state.model_value
     if diff > 0:
         st.success(f"You outperformed model by ₹{int(diff):,}")
@@ -112,47 +115,32 @@ if rd > 10:
     })
     st.line_chart(compare_df)
 
-    # ---------- ADAPTIVE BEHAVIOUR ----------
+    # Behaviour
     change = alloc_df.diff().abs().sum(axis=1).mean()
-
     if change > 120:
-        adapt = "Highly Adaptive Strategist"
+        adapt = "Highly Adaptive"
     elif change > 60:
         adapt = "Moderately Adaptive"
-    elif change > 25:
-        adapt = "Slow Adapter"
     else:
         adapt = "Static Allocator"
 
     st.subheader("Adaptive Behaviour")
     st.write(adapt)
 
-    # ---------- BEHAVIOURAL TYPE ----------
     avg_equity = alloc_df["Indian Equity"].mean()
     if avg_equity > 70:
         behaviour = "Momentum Chaser"
     elif avg_equity < 20:
-        behaviour = "Overly Defensive"
+        behaviour = "Defensive"
     else:
         behaviour = "Balanced"
 
-    st.subheader("Behavioural Type")
+    st.subheader("Behaviour Type")
     st.write(behaviour)
 
-    # ---------- REGIME TABLE ----------
-    st.subheader("Regime Performance")
-    regime_df = pd.DataFrame({
-        "Round": range(1,len(st.session_state.regime_labels)+1),
-        "Regime": st.session_state.regime_labels,
-        "Portfolio": hist["Value"]
-    })
-    st.dataframe(regime_df)
-
-    # ---------- HEATMAP ----------
     st.subheader("Allocation Heatmap")
     st.dataframe(alloc_df)
 
-    # ---------- DOWNLOAD DATASET ----------
     dataset = pd.concat([hist,alloc_df],axis=1)
     dataset["Regime"] = st.session_state.regime_labels
     dataset["Sharpe"] = sharpe
@@ -164,10 +152,10 @@ if rd > 10:
     st.stop()
 
 # =====================================================
-# CORE ROUNDS 1–5
+# FIXED ROUNDS 1–5
 # =====================================================
 fixed_rounds = {
-1:("Rate Tightening","RBI hikes rates",
+1:("Rate Hike","RBI hikes rates",
    {"Indian Equity":-0.07,"US Equity":-0.03,"Bonds":0.02,"Gold":0.04,"Crypto":-0.12,"Cash":0.01},
    "Higher rates hurt equities."),
 2:("Growth Rally","AI boom",
@@ -178,23 +166,20 @@ fixed_rounds = {
    "Flight to safety."),
 4:("Disinflation","Inflation cools",
    {"Indian Equity":0.08,"US Equity":0.06,"Bonds":0.07,"Gold":-0.04,"Crypto":0.05,"Cash":0.01},
-   "Risk-on recovery."),
+   "Risk-on."),
 5:("Recession","Recession fear",
    {"Indian Equity":-0.12,"US Equity":-0.15,"Bonds":0.06,"Gold":0.07,"Crypto":-0.20,"Cash":0.01},
-   "Diversification critical.")
+   "Diversification matters.")
 }
 
-# =====================================================
-# RANDOM SCENARIOS
-# =====================================================
 scenario_pool = [
 ("Liquidity","Liquidity injection",
  {"Indian Equity":0.11,"US Equity":0.13,"Bonds":0.03,"Gold":-0.02,"Crypto":0.20,"Cash":0.01},
- "Liquidity fuels risk assets."),
+ "Liquidity boosts assets."),
 ("Inflation","Oil spike",
  {"Indian Equity":-0.06,"US Equity":-0.05,"Bonds":-0.03,"Gold":0.07,"Crypto":-0.04,"Cash":0.01},
  "Inflation shock."),
-("Credit Stress","Bank stress",
+("Credit","Bank stress",
  {"Indian Equity":-0.09,"US Equity":-0.08,"Bonds":0.05,"Gold":0.07,"Crypto":-0.10,"Cash":0.01},
  "Credit tightening."),
 ("Mixed","Rate hike + earnings",
@@ -202,7 +187,7 @@ scenario_pool = [
  "Mixed signals.")
 ]
 
-# SAFE RANDOM
+# generate random
 if rd > 5 and not st.session_state.scenario_sequence:
     if len(scenario_pool)>=5:
         seq=random.sample(scenario_pool,5)
@@ -211,7 +196,7 @@ if rd > 5 and not st.session_state.scenario_sequence:
     random.shuffle(seq)
     st.session_state.scenario_sequence=seq
 
-# SELECT ROUND
+# select
 if rd<=5:
     regime,news,returns,concept=fixed_rounds[rd]
 else:
@@ -246,15 +231,10 @@ if total==100 and not st.session_state.submitted:
             invest=pv*(alloc[a]/100)
             new_val+=invest*(1+returns[a])
 
-        # MODEL CALC
-        if rd<=5:
-            model_alloc={
-                "Indian Equity":30,"US Equity":20,"Bonds":25,"Gold":15,"Crypto":5,"Cash":5
-            }
-        else:
-            model_alloc={
-                "Indian Equity":30,"US Equity":20,"Bonds":20,"Gold":15,"Crypto":5,"Cash":10
-            }
+        # model allocation (simple disciplined baseline)
+        model_alloc={
+            "Indian Equity":30,"US Equity":20,"Bonds":25,"Gold":15,"Crypto":5,"Cash":5
+        }
 
         mpv=st.session_state.model_value
         model_new=0
@@ -291,13 +271,8 @@ if st.session_state.submitted:
 st.markdown("""
 ---
 <div style='text-align:center; font-size:13px; color:gray'>
-
-**MBA Portfolio War-Room Simulation**  
-Designed & Developed by **Prof. Shalini Velappan**  
-Indian Institute of Management Tiruchirappalli  
-
-© 2026 Prof. Shalini Velappan. All rights reserved.  
-For academic use only.
-
+MBA Portfolio War-Room Simulation  
+Designed by Prof. Shalini Velappan | IIM Tiruchirappalli  
+© 2026 Academic Teaching Tool
 </div>
 """, unsafe_allow_html=True)
