@@ -411,7 +411,7 @@ if st.session_state.submitted:
         "AI Weight %":[v*100 for v in ai_alloc.values()]
     })
 
-st.dataframe(ai_df, use_container_width=True)
+    st.dataframe(ai_df, use_container_width=True)
 
     if st.button("Next Round"):
         st.session_state.round += 1
