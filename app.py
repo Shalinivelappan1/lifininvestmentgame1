@@ -69,6 +69,129 @@ if st.button("Reset Simulation"):
 rd = st.session_state.round
 
 # =====================================================
+# ENRICHED LEARNING INSIGHTS
+# =====================================================
+learning_insights = {
+
+"Rate Hike": """
+### 🔍 What Happened?
+Central banks raised policy rates → discount rates increase → equity valuations compress.
+
+### 📊 Asset Reaction Logic
+• Growth equities suffer  
+• Bonds stabilise after initial shock  
+• Gold benefits from uncertainty  
+
+### 🎓 Strategic Reflection
+Did you reduce risk exposure?  
+Did you overweight equities despite tightening?
+""",
+
+"Growth Rally": """
+### 🔍 What Happened?
+Technology optimism and growth expansion increased risk appetite.
+
+### 📊 Asset Reaction Logic
+• Equities and crypto rally  
+• Bonds underperform  
+• Cash becomes drag  
+
+### 🎓 Strategic Reflection
+Did you capture upside?  
+Or stay too defensive?
+""",
+
+"Crisis": """
+### 🔍 What Happened?
+Geopolitical stress triggered risk-off behaviour.
+
+### 📊 Asset Reaction Logic
+• Gold and bonds outperform  
+• Equities fall  
+• Diversification matters most  
+
+### 🎓 Strategic Reflection
+Did you hedge downside?  
+Or panic?
+""",
+
+"Disinflation": """
+### 🔍 What Happened?
+Falling inflation reduces uncertainty.
+
+### 📊 Asset Reaction Logic
+• Bonds rally  
+• Equities recover  
+• Balanced allocation benefits  
+
+### 🎓 Strategic Reflection
+Did you increase risk at the right time?
+""",
+
+"Recession": """
+### 🔍 What Happened?
+Recession fears drove defensive capital rotation.
+
+### 📊 Asset Reaction Logic
+• Bonds + gold protect  
+• High-beta assets fall  
+
+### 🎓 Strategic Reflection
+Was your portfolio concentrated?
+""",
+
+"Liquidity": """
+### 🔍 What Happened?
+Liquidity injection boosted asset prices broadly.
+
+### 📊 Asset Reaction Logic
+• Equities surge  
+• Crypto rallies  
+• Cash underperforms  
+
+### 🎓 Strategic Reflection
+Did you position for expansion?
+""",
+
+"Inflation": """
+### 🔍 What Happened?
+Inflation shock hurt duration assets.
+
+### 📊 Asset Reaction Logic
+• Gold hedges inflation  
+• Bonds fall  
+• Equities pressured  
+
+### 🎓 Strategic Reflection
+Did you hedge inflation risk?
+""",
+
+"Credit": """
+### 🔍 What Happened?
+Credit tightening increased financial stress.
+
+### 📊 Asset Reaction Logic
+• Defensive assets outperform  
+• Risk appetite falls  
+
+### 🎓 Strategic Reflection
+Did you rotate defensively?
+""",
+
+"Mixed": """
+### 🔍 What Happened?
+Conflicting signals created uncertainty.
+
+### 📊 Asset Reaction Logic
+• Balanced allocation reduces regret  
+• Overconfidence hurts  
+
+### 🎓 Strategic Reflection
+Did you stay disciplined?
+"""
+}
+
+# =====================================================
 # FINAL DASHBOARD
 # =====================================================
 if rd > 10:
@@ -84,34 +207,15 @@ if rd > 10:
     bench_returns = bench_hist["Value"].pct_change().dropna()
     smart_returns = smart_hist["Value"].pct_change().dropna()
 
-    # ---------- STUDENT ----------
     sharpe = returns.mean()/(returns.std()+1e-9)*np.sqrt(10)
-    vol = returns.std()*100
-    cum = hist["Value"]
-    peak = cum.cummax()
-    drawdown = ((cum-peak)/peak).min()*100
-    div = 100 - alloc_df.std(axis=1).mean()
-
-    st.subheader("Your Strategy")
-    st.metric("Final", f"₹{int(st.session_state.portfolio_value):,}")
-    st.metric("Sharpe", round(sharpe,3))
-    st.metric("Volatility %", round(vol,2))
-    st.metric("Max Drawdown %", round(drawdown,2))
-    st.metric("Diversification", round(div,2))
-
-    # ---------- BENCHMARK ----------
     bench_sharpe = bench_returns.mean()/(bench_returns.std()+1e-9)*np.sqrt(10)
-    st.subheader("Benchmark Model")
-    st.metric("Final", f"₹{int(st.session_state.bench_value):,}")
-    st.metric("Sharpe", round(bench_sharpe,3))
-
-    # ---------- SMART ----------
     smart_sharpe = smart_returns.mean()/(smart_returns.std()+1e-9)*np.sqrt(10)
-    st.subheader("Smart Macro Model")
-    st.metric("Final", f"₹{int(st.session_state.smart_value):,}")
-    st.metric("Sharpe", round(smart_sharpe,3))
 
-    # ---------- CHART ----------
+    st.subheader("Performance Comparison")
+    st.metric("Your Sharpe", round(sharpe,3))
+    st.metric("Benchmark Sharpe", round(bench_sharpe,3))
+    st.metric("Smart Model Sharpe", round(smart_sharpe,3))
+
     compare = pd.DataFrame({
         "Student": hist["Value"],
         "Benchmark": bench_hist["Value"],
@@ -119,27 +223,14 @@ if rd > 10:
     })
     st.line_chart(compare)
 
-    # ---------- ADAPTIVE ----------
-    change = alloc_df.diff().abs().sum(axis=1).mean()
-    if change > 120:
-        adapt = "Highly Adaptive"
-    elif change > 60:
-        adapt = "Moderately Adaptive"
-    else:
-        adapt = "Static"
-
-    st.subheader("Adaptive Behaviour")
-    st.write(adapt)
-
-    # ---------- HEATMAP ----------
-    st.subheader("Allocation Heatmap")
-    st.dataframe(alloc_df)
-
-    # ---------- DATASET ----------
-    dataset = pd.concat([hist,alloc_df],axis=1)
-    dataset["Regime"] = st.session_state.regime_labels
-    csv = dataset.to_csv(index=False).encode()
-    st.download_button("Download Dataset", csv, "simulation_data.csv")
+    st.subheader("🎓 Final Strategic Reflection")
+    st.write("""
+• Did you adapt across regimes?  
+• Did you chase recent winners?  
+• Did diversification protect you?  
+• Did the smart model outperform you? Why?  
+• Were your decisions emotional or systematic?
+""")
 
     st.stop()
 
@@ -184,25 +275,6 @@ if len(st.session_state.regime_labels) < rd:
     st.session_state.regime_labels.append(regime)
 
 # =====================================================
-# MODEL LOGIC
-# =====================================================
-benchmark_alloc = {
-    "Indian Equity":30,"US Equity":20,"Bonds":25,"Gold":15,"Crypto":5,"Cash":5
-}
-
-smart_allocations = {
-"Rate Hike":{"Indian Equity":20,"US Equity":10,"Bonds":35,"Gold":25,"Crypto":5,"Cash":5},
-"Growth Rally":{"Indian Equity":40,"US Equity":30,"Bonds":10,"Gold":5,"Crypto":10,"Cash":5},
-"Crisis":{"Indian Equity":15,"US Equity":10,"Bonds":35,"Gold":30,"Crypto":5,"Cash":5},
-"Disinflation":{"Indian Equity":35,"US Equity":25,"Bonds":25,"Gold":5,"Crypto":5,"Cash":5},
-"Recession":{"Indian Equity":20,"US Equity":15,"Bonds":35,"Gold":20,"Crypto":5,"Cash":5},
-"Liquidity":{"Indian Equity":45,"US Equity":35,"Bonds":5,"Gold":5,"Crypto":5,"Cash":5},
-"Inflation":{"Indian Equity":25,"US Equity":15,"Bonds":10,"Gold":40,"Crypto":5,"Cash":5},
-"Credit":{"Indian Equity":20,"US Equity":15,"Bonds":35,"Gold":20,"Crypto":5,"Cash":5},
-"Mixed":{"Indian Equity":30,"US Equity":20,"Bonds":25,"Gold":15,"Crypto":5,"Cash":5}
-}
-
-# =====================================================
 # ROUND UI
 # =====================================================
 st.header(f"Round {rd}")
@@ -220,18 +292,14 @@ st.write("Total Allocation:", total)
 if total==100 and not st.session_state.submitted:
     if st.button("Submit Allocation"):
 
-        # STUDENT
         pv = st.session_state.portfolio_value
         new_val = sum(pv*(alloc[a]/100)*(1+returns[a]) for a in returns)
 
-        # BENCHMARK
         bpv = st.session_state.bench_value
-        bench_new = sum(bpv*(benchmark_alloc[a]/100)*(1+returns[a]) for a in returns)
+        bench_new = sum(bpv*(0.2)*(1+returns[a]) for a in returns)
 
-        # SMART
-        smart_alloc = smart_allocations.get(regime, benchmark_alloc)
         spv = st.session_state.smart_value
-        smart_new = sum(spv*(smart_alloc[a]/100)*(1+returns[a]) for a in returns)
+        smart_new = sum(spv*(0.2)*(1+returns[a]) for a in returns)
 
         st.session_state.portfolio_value = new_val
         st.session_state.bench_value = bench_new
@@ -251,6 +319,9 @@ if st.session_state.submitted:
         "Asset": list(returns.keys()),
         "Return %":[returns[a]*100 for a in returns]
     }))
+
+    st.markdown("### 🧠 What Just Happened in Markets?")
+    st.info(learning_insights.get(regime,""))
 
     if st.button("Next Round"):
         st.session_state.round += 1
