@@ -57,7 +57,7 @@ def regime_ai_allocation(regime):
 # =====================================================
 # LEARNING INSIGHTS
 # =====================================================
-llearning_insights = {
+learning_insights = {
 
 "Rate Hike": """
 ### 🔍 What Happened?
