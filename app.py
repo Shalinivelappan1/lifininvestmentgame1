@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import random
 
-st.set_page_config(page_title="MBA Portfolio War-Room", layout="wide")
+st.set_page_config(page_title="Portfolio War-Room", layout="wide")
 
 # =====================================================
-# SAFE SESSION INIT
+# SESSION INIT
 # =====================================================
 defaults = {
     "initialized": False,
@@ -35,10 +35,88 @@ def reset_all():
     st.rerun()
 
 # =====================================================
+# REGIME AI
+# =====================================================
+def regime_ai_allocation(regime):
+
+    if regime in ["Crisis", "Recession", "Credit"]:
+        return {
+            "Indian Equity":0.10,"US Equity":0.10,"Bonds":0.35,
+            "Gold":0.30,"Crypto":0.05,"Cash":0.10
+        }
+
+    elif regime in ["Rate Hike","Inflation"]:
+        return {
+            "Indian Equity":0.15,"US Equity":0.15,"Bonds":0.25,
+            "Gold":0.30,"Crypto":0.05,"Cash":0.10
+        }
+
+    elif regime in ["Growth Rally","Liquidity"]:
+        return {
+            "Indian Equity":0.30,"US Equity":0.30,"Bonds":0.10,
+            "Gold":0.05,"Crypto":0.20,"Cash":0.05
+        }
+
+    else:
+        return {
+            "Indian Equity":0.20,"US Equity":0.20,"Bonds":0.20,
+            "Gold":0.20,"Crypto":0.10,"Cash":0.10
+        }
+
+# =====================================================
+# LEARNING INSIGHTS
+# =====================================================
+learning_insights = {
+
+"Rate Hike": """
+Central banks raised rates → equity valuations fall.  
+Defensive assets and gold usually hold better.
+""",
+
+"Growth Rally": """
+Risk appetite rises → equities & crypto rally.  
+Cash becomes a drag.
+""",
+
+"Crisis": """
+Risk-off environment.  
+Gold & bonds protect capital.  
+Diversification matters most.
+""",
+
+"Disinflation": """
+Inflation falls → bonds rally.  
+Balanced portfolios perform well.
+""",
+
+"Recession": """
+Growth slows → defensive allocation helps.  
+High-beta assets suffer.
+""",
+
+"Liquidity": """
+Liquidity injection boosts risk assets broadly.
+""",
+
+"Inflation": """
+Inflation hurts bonds and growth stocks.  
+Gold becomes hedge.
+""",
+
+"Credit": """
+Financial stress → rotate defensive.
+""",
+
+"Mixed": """
+Conflicting signals → diversification helps.
+"""
+}
+
+# =====================================================
 # TITLE
 # =====================================================
-st.title("🎓 MBA Portfolio War-Room Simulation")
-st.caption("Designed & Developed by Prof. Shalini Velappan, IIM Tiruchirappalli")
+st.title("🎓 Portfolio War-Room Simulation")
+st.caption("Designed by Prof. Shalini Velappan | IIM Tiruchirappalli")
 
 # =====================================================
 # START SCREEN
@@ -69,173 +147,7 @@ if st.button("Reset Simulation"):
 rd = st.session_state.round
 
 # =====================================================
-# ENRICHED LEARNING INSIGHTS
-# =====================================================
-learning_insights = {
-
-"Rate Hike": """
-### 🔍 What Happened?
-Central banks raised policy rates → discount rates increase → equity valuations compress.
-
-### 📊 Asset Reaction Logic
-• Growth equities suffer  
-• Bonds stabilise after initial shock  
-• Gold benefits from uncertainty  
-
-### 🎓 Strategic Reflection
-Did you reduce risk exposure?  
-Did you overweight equities despite tightening?
-""",
-
-"Growth Rally": """
-### 🔍 What Happened?
-Technology optimism and growth expansion increased risk appetite.
-
-### 📊 Asset Reaction Logic
-• Equities and crypto rally  
-• Bonds underperform  
-• Cash becomes drag  
-
-### 🎓 Strategic Reflection
-Did you capture upside?  
-Or stay too defensive?
-""",
-
-"Crisis": """
-### 🔍 What Happened?
-Geopolitical stress triggered risk-off behaviour.
-
-### 📊 Asset Reaction Logic
-• Gold and bonds outperform  
-• Equities fall  
-• Diversification matters most  
-
-### 🎓 Strategic Reflection
-Did you hedge downside?  
-Or panic?
-""",
-
-"Disinflation": """
-### 🔍 What Happened?
-Falling inflation reduces uncertainty.
-
-### 📊 Asset Reaction Logic
-• Bonds rally  
-• Equities recover  
-• Balanced allocation benefits  
-
-### 🎓 Strategic Reflection
-Did you increase risk at the right time?
-""",
-
-"Recession": """
-### 🔍 What Happened?
-Recession fears drove defensive capital rotation.
-
-### 📊 Asset Reaction Logic
-• Bonds + gold protect  
-• High-beta assets fall  
-
-### 🎓 Strategic Reflection
-Was your portfolio concentrated?
-""",
-
-"Liquidity": """
-### 🔍 What Happened?
-Liquidity injection boosted asset prices broadly.
-
-### 📊 Asset Reaction Logic
-• Equities surge  
-• Crypto rallies  
-• Cash underperforms  
-
-### 🎓 Strategic Reflection
-Did you position for expansion?
-""",
-
-"Inflation": """
-### 🔍 What Happened?
-Inflation shock hurt duration assets.
-
-### 📊 Asset Reaction Logic
-• Gold hedges inflation  
-• Bonds fall  
-• Equities pressured  
-
-### 🎓 Strategic Reflection
-Did you hedge inflation risk?
-""",
-
-"Credit": """
-### 🔍 What Happened?
-Credit tightening increased financial stress.
-
-### 📊 Asset Reaction Logic
-• Defensive assets outperform  
-• Risk appetite falls  
-
-### 🎓 Strategic Reflection
-Did you rotate defensively?
-""",
-
-"Mixed": """
-### 🔍 What Happened?
-Conflicting signals created uncertainty.
-
-### 📊 Asset Reaction Logic
-• Balanced allocation reduces regret  
-• Overconfidence hurts  
-
-### 🎓 Strategic Reflection
-Did you stay disciplined?
-"""
-}
-
-# =====================================================
-# FINAL DASHBOARD
-# =====================================================
-if rd > 10:
-
-    st.header("🏁 Final Performance Dashboard")
-
-    hist = pd.DataFrame(st.session_state.history)
-    bench_hist = pd.DataFrame(st.session_state.bench_history)
-    smart_hist = pd.DataFrame(st.session_state.smart_history)
-    alloc_df = pd.DataFrame(st.session_state.alloc_history)
-
-    returns = hist["Value"].pct_change().dropna()
-    bench_returns = bench_hist["Value"].pct_change().dropna()
-    smart_returns = smart_hist["Value"].pct_change().dropna()
-
-    sharpe = returns.mean()/(returns.std()+1e-9)*np.sqrt(10)
-    bench_sharpe = bench_returns.mean()/(bench_returns.std()+1e-9)*np.sqrt(10)
-    smart_sharpe = smart_returns.mean()/(smart_returns.std()+1e-9)*np.sqrt(10)
-
-    st.subheader("Performance Comparison")
-    st.metric("Your Sharpe", round(sharpe,3))
-    st.metric("Benchmark Sharpe", round(bench_sharpe,3))
-    st.metric("Smart Model Sharpe", round(smart_sharpe,3))
-
-    compare = pd.DataFrame({
-        "Student": hist["Value"],
-        "Benchmark": bench_hist["Value"],
-        "Smart": smart_hist["Value"]
-    })
-    st.line_chart(compare)
-
-    st.subheader("🎓 Final Strategic Reflection")
-    st.write("""
-• Did you adapt across regimes?  
-• Did you chase recent winners?  
-• Did diversification protect you?  
-• Did the smart model outperform you? Why?  
-• Were your decisions emotional or systematic?
-""")
-
-    st.stop()
-
-# =====================================================
-# FIXED ROUNDS
+# SCENARIOS
 # =====================================================
 fixed_rounds = {
 1:("Rate Hike","RBI hikes rates",
@@ -289,6 +201,9 @@ for i,a in enumerate(returns.keys()):
 total=sum(alloc.values())
 st.write("Total Allocation:", total)
 
+# =====================================================
+# SUBMIT
+# =====================================================
 if total==100 and not st.session_state.submitted:
     if st.button("Submit Allocation"):
 
@@ -296,10 +211,12 @@ if total==100 and not st.session_state.submitted:
         new_val = sum(pv*(alloc[a]/100)*(1+returns[a]) for a in returns)
 
         bpv = st.session_state.bench_value
-        bench_new = sum(bpv*(0.2)*(1+returns[a]) for a in returns)
+        w = 1/len(returns)
+        bench_new = sum(bpv*w*(1+returns[a]) for a in returns)
 
         spv = st.session_state.smart_value
-        smart_new = sum(spv*(0.2)*(1+returns[a]) for a in returns)
+        smart_alloc = regime_ai_allocation(regime)
+        smart_new = sum(spv*smart_alloc[a]*(1+returns[a]) for a in returns)
 
         st.session_state.portfolio_value = new_val
         st.session_state.bench_value = bench_new
@@ -313,14 +230,18 @@ if total==100 and not st.session_state.submitted:
         st.session_state.submitted=True
         st.rerun()
 
+# =====================================================
+# REVEAL
+# =====================================================
 if st.session_state.submitted:
     st.success("Returns Revealed")
+
     st.write(pd.DataFrame({
         "Asset": list(returns.keys()),
         "Return %":[returns[a]*100 for a in returns]
     }))
 
-    st.markdown("### 🧠 What Just Happened in Markets?")
+    st.markdown("### 🧠 Market Insight")
     st.info(learning_insights.get(regime,""))
 
     if st.button("Next Round"):
@@ -329,13 +250,42 @@ if st.session_state.submitted:
         st.rerun()
 
 # =====================================================
-# FOOTER
+# FINAL DASHBOARD
 # =====================================================
-st.markdown("""
----
-<div style='text-align:center; font-size:13px; color:gray'>
-MBA Portfolio War-Room Simulation  
-Designed by Prof. Shalini Velappan | IIM Tiruchirappalli  
-© 2026 Academic Teaching Tool
-</div>
-""", unsafe_allow_html=True)
+if rd > 10:
+
+    st.header("🏁 Final Performance Dashboard")
+
+    hist = pd.DataFrame(st.session_state.history)
+    bench_hist = pd.DataFrame(st.session_state.bench_history)
+    smart_hist = pd.DataFrame(st.session_state.smart_history)
+
+    r = hist["Value"].pct_change().dropna()
+    br = bench_hist["Value"].pct_change().dropna()
+    sr = smart_hist["Value"].pct_change().dropna()
+
+    sharpe = r.mean()/(r.std()+1e-9)*np.sqrt(10)
+    bsharpe = br.mean()/(br.std()+1e-9)*np.sqrt(10)
+    ssharpe = sr.mean()/(sr.std()+1e-9)*np.sqrt(10)
+
+    st.metric("Your Sharpe", round(sharpe,3))
+    st.metric("Benchmark Sharpe", round(bsharpe,3))
+    st.metric("Regime AI Sharpe", round(ssharpe,3))
+
+    compare = pd.DataFrame({
+        "Student": hist["Value"],
+        "Benchmark": bench_hist["Value"],
+        "Regime AI": smart_hist["Value"]
+    })
+
+    st.line_chart(compare)
+
+    st.subheader("🎓 Final Reflection")
+    st.write("""
+- Did you adapt to regimes?  
+- Did diversification help?  
+- Did you chase winners?  
+- Did AI outperform you? Why?  
+""")
+
+    st.stop()
