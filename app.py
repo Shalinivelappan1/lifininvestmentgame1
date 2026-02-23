@@ -29,7 +29,9 @@ if "initialized" not in st.session_state:
 # =====================================================
 # START SCREEN
 # =====================================================
-st.title("🎓 MBA Portfolio War-Room Simulation")
+st.title("🎓 Portfolio War-Room Simulation")
+
+st.caption("Designed & Developed by Prof. Shalini Velappan, IIM Tiruchirappalli")
 
 if not st.session_state.initialized:
     capital = st.number_input("Initial Capital (₹)", value=1000000, step=100000)
@@ -44,7 +46,9 @@ if not st.session_state.initialized:
 # =====================================================
 col1, col2 = st.columns(2)
 col1.metric("Portfolio Value", f"₹{int(st.session_state.portfolio_value):,}")
-col2.metric("Round", st.session_state.round)
+
+display_round = min(st.session_state.round, 10)
+col2.metric("Round", display_round)
 
 if st.button("🔄 Reset Simulation"):
     reset_state()
